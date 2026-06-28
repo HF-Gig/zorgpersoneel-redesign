@@ -3,6 +3,8 @@ import { motion } from "motion/react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ArrowRight, CheckCircle, Upload, X, Shield, Clock, Heart } from "lucide-react";
+import BlurText from "../components/ui/BlurText";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 const BEROEPEN = ["Verpleegkundige","Verzorgende IG","Zorgassistent","Jeugdzorgwerker","Begeleider","MZV Professional","Activiteitenbegeleider","Huishoudelijke hulp","Anders"];
 const PROVINCIES = ["Groningen","Friesland","Drenthe","Overijssel","Flevoland","Gelderland","Utrecht","Noord-Holland","Zuid-Holland","Zeeland","Noord-Brabant","Limburg"];
@@ -26,6 +28,7 @@ function RegistrationForm() {
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [cvError, setCvError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<FormData>();
 
@@ -47,14 +50,73 @@ function RegistrationForm() {
     setCvFile(file);
   }
 
+  const getBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64Str = (reader.result as string).split(",")[1];
+        resolve(base64Str);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const onSubmit = async (data: FormData) => {
     if (data.website) return;
-    if (!cvFile) { setCvError("CV uploaden is verplicht"); return; }
-    await new Promise(r => setTimeout(r, 2000));
-    toast.success("Aanmelding verzonden!", { description: "Uw aanmelding inclusief CV is ontvangen. We nemen snel contact met u op." });
-    setSubmitted(true);
-    reset();
-    setCvFile(null);
+    if (!cvFile) {
+      setCvError("CV uploaden is verplicht");
+      return;
+    }
+    if (!turnstileToken) {
+      toast.error("Spam protection required", {
+        description: "Please complete the Turnstile challenge.",
+      });
+      return;
+    }
+
+    try {
+      const base64Cv = await getBase64(cvFile);
+      const payload = {
+        ...data,
+        token: turnstileToken,
+        cv: {
+          content: base64Cv,
+          name: cvFile.name,
+        },
+      };
+
+      const apiUrl =
+        (import.meta as any).env.VITE_API_URL || "http://localhost:5000";
+      const response = await fetch(`${apiUrl}/api/register-zorgverlener`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || "Er is iets misgegaan bij het verzenden van uw aanmelding.",
+        );
+      }
+
+      toast.success("Aanmelding verzonden!", {
+        description:
+          "Uw aanmelding inclusief CV is ontvangen. We nemen snel contact met u op.",
+      });
+      setSubmitted(true);
+      reset();
+      setCvFile(null);
+      setTurnstileToken(null);
+    } catch (err: any) {
+      toast.error("Fout bij aanmelden", {
+        description:
+          err.message || "Kon de aanmelding niet verzenden. Probeer het later opnieuw.",
+      });
+    }
   };
 
   if (submitted) {
@@ -77,7 +139,7 @@ function RegistrationForm() {
             </div>
           ))}
         </div>
-        <button onClick={() => setSubmitted(false)} className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-3.5 rounded-full font-semibold hover:bg-primary/90 transition-all mx-auto">
+        <button onClick={() => setSubmitted(false)} className="cursor-target flex items-center gap-2 bg-primary text-primary-foreground px-8 py-3.5 rounded-full font-semibold hover:bg-primary/90 transition-all mx-auto">
           Nieuwe aanmelding
         </button>
       </motion.div>
@@ -96,38 +158,38 @@ function RegistrationForm() {
       <div className="grid md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">Voornaam <span className="text-primary">*</span></label>
-          <input {...register("voornaam", { required: "Verplicht veld" })} className={`zp-input ${errors.voornaam ? "error" : ""}`} placeholder="Uw voornaam" />
+          <input {...register("voornaam", { required: "Verplicht veld" })} className={`zp-input cursor-target ${errors.voornaam ? "error" : ""}`} placeholder="Uw voornaam" />
           {errors.voornaam && <p className="text-sm text-red-500 mt-1">{errors.voornaam.message}</p>}
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">Achternaam <span className="text-primary">*</span></label>
-          <input {...register("achternaam", { required: "Verplicht veld" })} className={`zp-input ${errors.achternaam ? "error" : ""}`} placeholder="Uw achternaam" />
+          <input {...register("achternaam", { required: "Verplicht veld" })} className={`zp-input cursor-target ${errors.achternaam ? "error" : ""}`} placeholder="Uw achternaam" />
           {errors.achternaam && <p className="text-sm text-red-500 mt-1">{errors.achternaam.message}</p>}
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">E-mailadres <span className="text-primary">*</span></label>
           <input {...register("email", { required: "Verplicht veld", pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Ongeldig e-mailadres" } })}
-            type="email" className={`zp-input ${errors.email ? "error" : ""}`} placeholder="uw@email.nl" />
+            type="email" className={`zp-input cursor-target ${errors.email ? "error" : ""}`} placeholder="uw@email.nl" />
           {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>}
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">Telefoonnummer <span className="text-primary">*</span></label>
-          <input {...register("telefoon", { required: "Verplicht veld" })} type="tel" className={`zp-input ${errors.telefoon ? "error" : ""}`} placeholder="+31 6 12345678" />
+          <input {...register("telefoon", { required: "Verplicht veld" })} type="tel" className={`zp-input cursor-target ${errors.telefoon ? "error" : ""}`} placeholder="+31 6 12345678" />
           {errors.telefoon && <p className="text-sm text-red-500 mt-1">{errors.telefoon.message}</p>}
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">Woonplaats <span className="text-primary">*</span></label>
-          <input {...register("woonplaats", { required: "Verplicht veld" })} className={`zp-input ${errors.woonplaats ? "error" : ""}`} placeholder="Uw stad of gemeente" />
+          <input {...register("woonplaats", { required: "Verplicht veld" })} className={`zp-input cursor-target ${errors.woonplaats ? "error" : ""}`} placeholder="Uw stad of gemeente" />
           {errors.woonplaats && <p className="text-sm text-red-500 mt-1">{errors.woonplaats.message}</p>}
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">Regio (provincie) <span className="text-primary">*</span></label>
-          <select {...register("regio", { required: "Verplicht veld" })} className={`zp-input ${errors.regio ? "error" : ""}`}>
+          <select {...register("regio", { required: "Verplicht veld" })} className={`zp-input cursor-target ${errors.regio ? "error" : ""}`}>
             <option value="">Selecteer provincie</option>
             {PROVINCIES.map(p => <option key={p}>{p}</option>)}
           </select>
@@ -136,7 +198,7 @@ function RegistrationForm() {
 
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">Beroep / Specialisatie <span className="text-primary">*</span></label>
-          <select {...register("beroep", { required: "Verplicht veld" })} className={`zp-input ${errors.beroep ? "error" : ""}`}>
+          <select {...register("beroep", { required: "Verplicht veld" })} className={`zp-input cursor-target ${errors.beroep ? "error" : ""}`}>
             <option value="">Selecteer beroep</option>
             {BEROEPEN.map(b => <option key={b}>{b}</option>)}
           </select>
@@ -146,14 +208,15 @@ function RegistrationForm() {
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">Jaren ervaring <span className="text-primary">*</span></label>
           <input {...register("ervaring", { required: "Verplicht veld", min: { value: 0, message: "Minimaal 0" } })}
-            type="number" min="0" className={`zp-input ${errors.ervaring ? "error" : ""}`} placeholder="Bijv. 5" />
+            type="number" min="0" className={`zp-input cursor-target ${errors.ervaring ? "error" : ""}`} placeholder="Bijv. 5" />
           {errors.ervaring && <p className="text-sm text-red-500 mt-1">{errors.ervaring.message}</p>}
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-sm font-semibold text-foreground mb-2">Over uzelf <span className="text-muted-foreground font-normal">(optioneel)</span></label>
-          <textarea {...register("over_uzelf")} className="zp-input" rows={4}
+          <label className="block text-sm font-semibold text-foreground mb-2">Over uzelf <span className="text-primary">*</span></label>
+          <textarea {...register("over_uzelf", { required: "Verplicht veld" })} className={`zp-input cursor-target ${errors.over_uzelf ? "error" : ""}`} rows={4}
             placeholder="Vertel kort iets over uw ervaring, motivatie, of voorkeur voor type zorginstelling..." />
+          {errors.over_uzelf && <p className="text-sm text-red-500 mt-1">{errors.over_uzelf.message}</p>}
         </div>
 
         {/* CV Upload */}
@@ -161,7 +224,7 @@ function RegistrationForm() {
           <label className="block text-sm font-semibold text-foreground mb-2">CV uploaden <span className="text-primary">*</span></label>
           <div
             onClick={() => fileRef.current?.click()}
-            className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${cvError ? "border-red-400 bg-red-50" : cvFile ? "border-primary/40 bg-primary/5" : "border-border hover:border-primary/40 hover:bg-primary/3"}`}
+            className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all cursor-target ${cvError ? "border-red-400 bg-red-50" : cvFile ? "border-primary/40 bg-primary/5" : "border-border hover:border-primary/40 hover:bg-primary/3"}`}
           >
             <input ref={fileRef} type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden" onChange={handleFile} />
             {cvFile ? (
@@ -173,7 +236,7 @@ function RegistrationForm() {
                   <p className="font-semibold text-foreground text-sm">{cvFile.name}</p>
                   <p className="text-xs text-muted-foreground">{(cvFile.size / 1024).toFixed(0)} KB · Klik om te wijzigen</p>
                 </div>
-                <button type="button" onClick={e => { e.stopPropagation(); setCvFile(null); }} className="ml-2 p-1 hover:bg-secondary rounded-lg transition-colors">
+                <button type="button" onClick={e => { e.stopPropagation(); setCvFile(null); }} className="ml-2 p-1 hover:bg-secondary rounded-lg transition-colors cursor-target">
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
               </div>
@@ -194,7 +257,7 @@ function RegistrationForm() {
         <div className="md:col-span-2">
           <label className="flex items-start gap-3 cursor-pointer">
             <input {...register("akkoord", { required: "U dient akkoord te gaan" })}
-              type="checkbox" className="mt-1 w-4 h-4 accent-[#C4643A] cursor-pointer" />
+              type="checkbox" className="mt-1 w-4 h-4 accent-[#ab5c9d] cursor-pointer cursor-target" />
             <span className="text-sm text-foreground/80">
               Ik ga akkoord met de{" "}
               <a href="#" className="text-primary underline hover:text-primary/80">privacyverklaring</a>{" "}
@@ -205,12 +268,21 @@ function RegistrationForm() {
         </div>
       </div>
 
+      {/* Spam protection */}
+      <div className="mt-6 flex justify-end">
+        <Turnstile
+          siteKey={(import.meta as any).env.VITE_TURNSTILE_SITE_KEY}
+          onSuccess={(token) => setTurnstileToken(token)}
+          onExpire={() => setTurnstileToken(null)}
+        />
+      </div>
+
       <div className="mt-8 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <p className="text-xs text-muted-foreground max-w-sm">
           Uw CV en gegevens worden uitsluitend gebruikt voor arbeidsbemiddeling. Nooit gedeeld met derden.
         </p>
         <button type="submit" disabled={isSubmitting}
-          className="flex items-center gap-2 bg-primary text-primary-foreground px-10 py-4 rounded-full font-semibold hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap shrink-0">
+          className="cursor-target flex items-center gap-2 bg-primary text-primary-foreground px-10 py-4 rounded-full font-semibold hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap shrink-0">
           {isSubmitting ? (
             <><div className="w-5 h-5 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground animate-spin" /> Aanmelding verzenden...</>
           ) : (
@@ -232,8 +304,24 @@ export default function Registreren() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
           <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <span className="font-mono-label text-[11px] tracking-[0.16em] text-primary uppercase mb-4 block">Voor Zorgverleners</span>
-            <h1 className="font-display font-black text-foreground leading-tight mb-6" style={{ fontSize: "clamp(2.8rem,6vw,5rem)" }}>
-              Werk op uw <span className="italic gradient-text">eigen voorwaarden.</span>
+            <h1
+              className="font-display font-black text-foreground leading-tight mb-6 flex flex-wrap"
+              style={{ fontSize: "clamp(2.8rem,6vw,5rem)" }}
+            >
+              <BlurText
+                text="Werk op uw"
+                delay={150}
+                animateBy="words"
+                direction="top"
+                className="mr-[0.3em]"
+              />
+              <BlurText
+                text="eigen voorwaarden."
+                delay={150}
+                animateBy="words"
+                direction="top"
+                childClassName="italic gradient-text"
+              />
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed">
               Meld u aan, upload uw CV en begin direct met het kiezen van diensten die bij u passen.
