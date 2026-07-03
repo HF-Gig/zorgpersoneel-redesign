@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion } from "motion/react";
 import { Menu, X, ArrowRight, Phone, Mail, MapPin } from "lucide-react";
 import GlassSurface from "./components/ui/GlassSurface";
-import TargetCursor from "./components/ui/TargetCursor";
+import Lenis from "lenis";
 
 function GlobalStyles() {
   return (
@@ -92,8 +92,8 @@ export function onTiltLeave(e: React.MouseEvent<HTMLDivElement>) {
 const NAV_LINKS = [
   { label: "Home", to: "/" },
   { label: "Voor Instellingen", to: "/voor-instellingen" },
-  { label: "Voor Zorgverleners", to: "/registreren" },
-  { label: "Beschikbaar Vandaag", to: "/beschikbaar-vandaag" },
+  { label: "Voor Zorgprofessionals", to: "/registreren" },
+  { label: "Spoeddienst aanvraag", to: "/spoeddienst-aanvraag" },
 ];
 
 function Nav() {
@@ -234,10 +234,11 @@ function Nav() {
             <Phone className="w-4 h-4" /> 0478-229 003
           </a> */}
           <Link
-            to="/voor-instellingen"
-            className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-px"
+            to="/spoeddienst-aanvraag"
+            className="button2 button2-primary button2-sm gap-2"
           >
-            Personeel aanvragen <ArrowRight className="w-4 h-4" />
+            Spoeddienst aanvragen{" "}
+            <ArrowRight className="w-4 h-4 flex-shrink-0" />
           </Link>
         </div>
 
@@ -266,10 +267,10 @@ function Nav() {
           ))}
           <div className="pt-4 border-t border-border mt-2">
             <Link
-              to="/voor-instellingen"
+              to="/spoeddienst-aanvraag"
               className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full text-sm font-semibold"
             >
-              Personeel aanvragen <ArrowRight className="w-4 h-4" />
+              Spoeddienst aanvragen <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
@@ -343,7 +344,7 @@ function Footer() {
             </p>
             <ul className="space-y-3">
               {[
-                "Personeel aanvragen",
+                "Spoeddienst aanvragen",
                 "Aanmelden als professional",
                 "Klantenservice",
                 "Privacybeleid",
@@ -410,9 +411,26 @@ function ScrollToTop() {
 }
 
 export default function Root() {
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
+
   return (
     <div className="grain bg-background text-foreground overflow-x-hidden">
-      <TargetCursor />
       <GlobalStyles />
       <ScrollToTop />
       <Nav />

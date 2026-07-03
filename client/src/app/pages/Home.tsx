@@ -31,7 +31,9 @@ import Ballpit from "../components/ui/Ballpit";
 import NetherlandsMap from "../components/ui/NetherlandsMap";
 import Iridescence from "../components/ui/Iridescence";
 import FloatingAvatars from "../components/ui/FloatingAvatars";
-
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Spline from "@splinetool/react-spline";
 
 const tilt = { onMouseMove: onTiltMove, onMouseLeave: onTiltLeave };
 
@@ -119,9 +121,6 @@ function Hero() {
 
       {/* Floating Healthcare Staff Avatars */}
       <FloatingAvatars />
-
-
-
 
       <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full relative z-10">
         <div className="grid lg:grid-cols-[1fr_auto] gap-12 xl:gap-20 items-center">
@@ -215,10 +214,11 @@ function Hero() {
                   </motion.div>
                 </motion.div>
                 <Link
-                  to="/voor-instellingen"
-                  className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-full text-base font-semibold hover:bg-primary/90 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
+                  to="/spoeddienst-aanvraag"
+                  className="button2 button2-primary gap-2"
                 >
-                  Personeel aanvragen <ArrowRight className="w-5 h-5" />
+                  Spoeddienst aanvragen{" "}
+                  <ArrowRight className="w-5 h-5 flex-shrink-0" />
                 </Link>
               </div>
 
@@ -274,9 +274,9 @@ function Hero() {
                 </motion.div>
                 <Link
                   to="/registreren"
-                  className="flex items-center gap-2 border border-border bg-card text-foreground px-8 py-4 rounded-full text-base font-medium hover:border-primary/30 hover:bg-secondary transition-all duration-300"
+                  className="button2 button2-accent gap-2"
                 >
-                  Ik zoek werk <ArrowRight className="w-5 h-5 text-primary" />
+                  Ik zoek werk <ArrowRight className="w-5 h-5 flex-shrink-0" />
                 </Link>
               </div>
             </motion.div>
@@ -320,21 +320,18 @@ function Hero() {
             >
               <div className="relative rounded-3xl overflow-hidden shadow-[0_40px_80px_-12px_rgba(30,20,16,0.25)]">
                 <img
-                  src="https://images.unsplash.com/photo-1527689368864-3a821dbccc34?w=880&h=980&fit=crop&auto=format"
-                  alt="Therapeut in gesprek met cliënt"
+                  src="/building.png"
+                  alt="Zorgpersoneel.nl Hoofdkantoor"
                   className="w-full h-[520px] object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-foreground/55 via-foreground/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-7">
                   <p className="font-display text-xl font-bold text-primary-foreground leading-snug mb-1">
-                    Vandaag professionals beschikbaar
+                    Ons Hoofdkantoor
                   </p>
-                  <Link
-                    to="/beschikbaar-vandaag"
-                    className="text-primary-foreground/70 text-sm hover:text-primary-foreground transition-colors"
-                  >
-                    Bekijk wie er beschikbaar is →
-                  </Link>
+                  <p className="text-primary-foreground/70 text-sm">
+                    Keizersveld 47D, Venray
+                  </p>
                 </div>
               </div>
 
@@ -595,10 +592,10 @@ function VoorInstellingenSection() {
               ))}
             </ul>
             <Link
-              to="/voor-instellingen"
+              to="/spoeddienst-aanvraag"
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-full text-base font-semibold hover:bg-primary/90 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/25 transition-all duration-300"
             >
-              Personeel aanvragen <ArrowRight className="w-5 h-5" />
+              Spoeddienst aanvragen <ArrowRight className="w-5 h-5" />
             </Link>
           </motion.div>
         </div>
@@ -690,13 +687,8 @@ function VoorZorgverleners() {
                 to="/registreren"
                 className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-full text-base font-semibold hover:bg-primary/90 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/25 transition-all duration-300"
               >
-                Aanmelden als zorgverlener <ArrowRight className="w-5 h-5" />
-              </Link>
-              <Link
-                to="/beschikbaar-vandaag"
-                className="inline-flex items-center gap-2 border border-border bg-card text-foreground px-8 py-4 rounded-full text-base font-medium hover:border-primary/30 transition-all duration-300"
-              >
-                Beschikbaar vandaag
+                Aanmelden als zorgprofessional{" "}
+                <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
           </motion.div>
@@ -797,18 +789,30 @@ function CoverageSection() {
   const { ref, v } = useInView(0.15);
 
   const provinces = [
-    { name: "Noord-Holland", stats: "140+ professionals" },
-    { name: "Zuid-Holland", stats: "165+ professionals" },
-    { name: "Utrecht", stats: "95+ professionals" },
-    { name: "Gelderland", stats: "110+ professionals" },
-    { name: "Noord-Brabant", stats: "130+ professionals" },
-    { name: "Overijssel", stats: "75+ professionals" },
-    { name: "Friesland", stats: "50+ professionals" },
-    { name: "Groningen", stats: "60+ professionals" },
-    { name: "Drenthe", stats: "45+ professionals" },
-    { name: "Flevoland", stats: "55+ professionals" },
-    { name: "Zeeland", stats: "35+ professionals" },
-    { name: "Limburg", stats: "70+ professionals" },
+    {
+      name: "Noord-Holland",
+      stats: "Verpleegkundigen, Begeleiders, Verzorgenden",
+    },
+    {
+      name: "Zuid-Holland",
+      stats: "MZV Professionals, Verpleegkundigen, Jeugdzorg",
+    },
+    { name: "Utrecht", stats: "Begeleiders, Verzorgenden IG, Verpleging" },
+    { name: "Gelderland", stats: "Jeugdzorgwerkers, Begeleiders, Verpleging" },
+    {
+      name: "Noord-Brabant",
+      stats: "Verpleegkundigen, Verzorgenden IG, Begeleiding",
+    },
+    { name: "Overijssel", stats: "Verzorgenden IG, Begeleiders, MZV" },
+    { name: "Friesland", stats: "Begeleiders, Verpleegkundigen, IG" },
+    { name: "Groningen", stats: "Verpleegkundigen, Begeleiders, Jeugd" },
+    { name: "Drenthe", stats: "Verzorgenden IG, Begeleiding, Verpleging" },
+    { name: "Flevoland", stats: "MZV Professionals, Begeleiders, IG" },
+    {
+      name: "Zeeland",
+      stats: "Verpleegkundigen, Verzorgenden IG, Begeleiding",
+    },
+    { name: "Limburg", stats: "Begeleiders, Verpleegkundigen, MZV" },
   ];
 
   return (
@@ -898,10 +902,10 @@ function DualCTA() {
           {[
             {
               bg: "bg-primary",
-              title: "Ik zoek personeel",
-              sub: "Dien een aanvraag in en ontvang een gekwalificeerde medewerker binnen 15 minuten.",
-              cta: "Personeel aanvragen",
-              to: "/voor-instellingen",
+              title: "Directe spoeddienst aanvragen",
+              sub: "Dien een spoedaanvraag in en ontvang direct hulp voor uw zorginstelling binnen 15 minuten.",
+              cta: "Spoeddienst aanvragen",
+              to: "/spoeddienst-aanvraag",
               textColor: "text-primary-foreground",
               iridescenceColor: [0.67, 0.36, 0.62], // brand purple
             },

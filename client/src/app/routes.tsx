@@ -3,7 +3,7 @@ import Root from "./Root";
 import Home from "./pages/Home";
 import VoorInstellingen from "./pages/VoorInstellingen";
 import Registreren from "./pages/Registreren";
-import BeschikbaarVandaag from "./pages/BeschikbaarVandaag";
+import SpoeddienstAanvraag from "./pages/SpoeddienstAanvraag";
 import Portaal from "./pages/Portaal";
 
 export const router = createBrowserRouter([
@@ -14,7 +14,7 @@ export const router = createBrowserRouter([
       { index: true, Component: Home },
       { path: "voor-instellingen", Component: VoorInstellingen },
       { path: "registreren", Component: Registreren },
-      { path: "beschikbaar-vandaag", Component: BeschikbaarVandaag },
+      { path: "spoeddienst-aanvraag", Component: SpoeddienstAanvraag },
       { path: "portaal", Component: Portaal },
     ],
   },

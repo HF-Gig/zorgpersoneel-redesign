@@ -9,74 +9,35 @@ import {
   ArrowRight,
   CheckCircle,
   Phone,
-  AlertCircle,
   Shield,
   Clock,
   Users,
+  Award,
+  BookOpen,
+  Calendar,
 } from "lucide-react";
 
-const SPECIALISATIES = [
-  "Verpleegkundige",
-  "Verzorgende IG",
-  "Zorgassistent",
-  "Jeugdzorgwerker",
-  "Begeleider",
-  "MZV Professional",
-  "Activiteitenbegeleider",
-  "Anders",
-];
-const INSTELLINGEN = [
-  "Verzorgingshuis",
-  "GGZ Instelling",
-  "Thuiszorgorganisatie",
-  "Jeugdzorgorganisatie",
-  "Gehandicaptenzorginstelling",
-  "Revalidatiecentrum",
-  "Anders",
-];
-const TIJDVAKKEN = [
-  "Ochtend (7:00 – 15:00)",
-  "Middag (15:00 – 23:00)",
-  "Nacht (23:00 – 7:00)",
-  "Volledige dag",
-  "Flexibel",
-];
-const URGENTIE = [
-  "Normaal (1–3 dagen)",
-  "Urgent (binnen 48 uur)",
-  "Noodgeval – vandaag",
-];
-
-interface FormData {
+interface AppointmentFormData {
   naam_instelling: string;
   contactpersoon: string;
   email: string;
   telefoon: string;
-  type_instelling: string;
-  specialisatie: string;
-  aantal: number;
-  startdatum: string;
-  tijdvak: string;
-  urgentie: string;
-  informatie: string;
+  onderwerp: string;
+  bericht: string;
   website: string; // honeypot
 }
 
-function StaffingForm() {
+function AppointmentForm() {
   const [submitted, setSubmitted] = useState(false);
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors, isSubmitting },
     reset,
-  } = useForm<FormData>();
-  const urgentie = watch("urgentie");
-  const isNoodgeval = urgentie === "Noodgeval – vandaag";
-
+  } = useForm<AppointmentFormData>();
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: AppointmentFormData) => {
     if (data.website) return; // honeypot
     if (!turnstileToken) {
       toast.error("Spam protection required", {
@@ -92,29 +53,32 @@ function StaffingForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...data, token: turnstileToken }),
+        body: JSON.stringify({
+          ...data,
+          urgentie: "Informatie/Afspraak aanvraag",
+          specialisatie: data.onderwerp,
+          informatie: data.bericht,
+          startdatum: new Date().toISOString().split("T")[0],
+          tijdvak: "N.v.t.",
+          aantal: 1,
+          type_instelling: "Algemeen",
+          token: turnstileToken,
+        }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error ||
-            "Er is iets misgegaan bij het verzenden van de aanvraag.",
-        );
+        throw new Error("Er is iets misgegaan bij het verzenden van de aanvraag.");
       }
 
-      toast.success("Aanvraag verzonden!", {
-        description:
-          "Uw aanvraag is ontvangen. We nemen binnen 15 minuten contact op.",
+      toast.success("Verzoek verzonden!", {
+        description: "We nemen zo snel mogelijk contact met u op.",
       });
       setSubmitted(true);
       reset();
       setTurnstileToken(null);
     } catch (err: any) {
       toast.error("Fout bij verzenden", {
-        description:
-          err.message ||
-          "Kon de aanvraag niet verzenden. Probeer het later opnieuw.",
+        description: err.message || "Kon het verzoek niet verzenden.",
       });
     }
   };
@@ -124,34 +88,23 @@ function StaffingForm() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="bg-card border border-border rounded-3xl p-12 text-center"
+        className="bg-card border border-border rounded-3xl p-12 text-center shadow-xl"
       >
-        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-          <CheckCircle className="w-10 h-10 text-primary" />
+        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
+          <CheckCircle className="w-8 h-8 text-primary" />
         </div>
-        <h3 className="font-display text-3xl font-bold text-foreground mb-4">
-          Aanvraag ontvangen!
+        <h3 className="font-display text-2xl font-bold text-foreground mb-4">
+          Bedankt voor uw aanvraag!
         </h3>
-        <p className="text-muted-foreground leading-relaxed mb-8 max-w-md mx-auto">
-          Uw personeelsaanvraag is direct doorgestuurd naar ons team. We nemen
-          binnen 15 minuten contact met u op via het opgegeven e-mailadres of
-          telefoonnummer.
+        <p className="text-muted-foreground leading-relaxed mb-6 max-w-md mx-auto">
+          We hebben uw verzoek ontvangen. Een van onze adviseurs neemt binnen één werkdag contact met u op om een afspraak in te plannen.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button
-            onClick={() => setSubmitted(false)}
-            className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-3.5 rounded-full font-semibold hover:bg-primary/90 transition-all"
-          >
-            Nieuwe aanvraag
-          </button>
-          <Link
-            to="/beschikbaar-vandaag"
-            className="flex items-center gap-2 border border-border px-8 py-3.5 rounded-full font-medium hover:bg-secondary transition-all"
-          >
-            Bekijk beschikbare medewerkers <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
+        <button
+          onClick={() => setSubmitted(false)}
+          className="bg-primary text-primary-foreground px-8 py-3.5 rounded-full font-semibold hover:bg-primary/90 transition-all mx-auto"
+        >
+          Nieuw bericht sturen
+        </button>
       </motion.div>
     );
   }
@@ -159,128 +112,65 @@ function StaffingForm() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="bg-card border border-border rounded-3xl p-8 lg:p-12"
+      className="bg-card border border-border rounded-3xl p-8 lg:p-12 shadow-xl"
     >
-      {/* Honeypot */}
-      <input
-        {...register("website")}
-        type="text"
-        className="hidden"
-        tabIndex={-1}
-        autoComplete="off"
-      />
-
+      <input {...register("website")} type="text" className="hidden" tabIndex={-1} />
       <div className="mb-8">
         <h3 className="font-display text-2xl font-bold text-foreground mb-2">
-          Personeelsaanvraag indienen
+          Neem contact op of boek een afspraak
         </h3>
         <p className="text-muted-foreground text-sm">
-          Uw gegevens worden direct doorgestuurd naar{" "}
-          <strong>info@zorgpersoneel.nl</strong>
+          Laat uw gegevens achter en wij bellen of mailen u zo snel mogelijk terug.
         </p>
       </div>
 
-      {isNoodgeval && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mb-8"
-        >
-          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-red-700">
-              Noodgeval geselecteerd
-            </p>
-            <p className="text-sm text-red-600 mt-0.5">
-              Bel ons direct op{" "}
-              <a href="tel:0478229003" className="font-bold underline">
-                0478-229 003
-              </a>{" "}
-              voor de snelste service. Of{" "}
-              <Link to="/beschikbaar-vandaag" className="font-bold underline">
-                bekijk wie er nu beschikbaar is
-              </Link>
-              .
-            </p>
-          </div>
-        </motion.div>
-      )}
-
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Naam instelling */}
         <div className="md:col-span-2">
           <label className="block text-sm font-semibold text-foreground mb-2">
-            Naam instelling <span className="text-primary">*</span>
+            Naam instelling / organisatie <span className="text-primary">*</span>
           </label>
           <input
             {...register("naam_instelling", { required: "Verplicht veld" })}
-            className={`zp-input cursor-target ${errors.naam_instelling ? "error" : ""}`}
-            placeholder="Bijv. Verzorgingshuis De Linde"
+            className={`zp-input ${errors.naam_instelling ? "error" : ""}`}
+            placeholder="Bijv. GGZ Noord-Nederland"
           />
-          {errors.naam_instelling && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.naam_instelling.message}
-            </p>
-          )}
         </div>
-
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">
             Contactpersoon <span className="text-primary">*</span>
           </label>
           <input
             {...register("contactpersoon", { required: "Verplicht veld" })}
-            className={`zp-input cursor-target ${errors.contactpersoon ? "error" : ""}`}
-            placeholder="Voor- en achternaam"
+            className={`zp-input ${errors.contactpersoon ? "error" : ""}`}
+            placeholder="Uw naam"
           />
-          {errors.contactpersoon && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.contactpersoon.message}
-            </p>
-          )}
         </div>
-
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">
-            Type instelling <span className="text-primary">*</span>
+            Onderwerp / Reden <span className="text-primary">*</span>
           </label>
           <select
-            {...register("type_instelling", { required: "Verplicht veld" })}
-            className={`zp-input cursor-target ${errors.type_instelling ? "error" : ""}`}
+            {...register("onderwerp", { required: "Verplicht veld" })}
+            className={`zp-input ${errors.onderwerp ? "error" : ""}`}
           >
-            <option value="">Selecteer type</option>
-            {INSTELLINGEN.map((o) => (
-              <option key={o}>{o}</option>
-            ))}
+            <option value="">Selecteer optie</option>
+            <option value="Terugbelverzoek">Bel mij terug</option>
+            <option value="Informatiepakket">Informatiepakket aanvragen</option>
+            <option value="Vrijblijvend kennismakingsgesprek">Vrijblijvend gesprek boeken</option>
+            <option value="Samenwerkingsmogelijkheden">Samenwerking bespreken</option>
           </select>
-          {errors.type_instelling && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.type_instelling.message}
-            </p>
-          )}
         </div>
-
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">
             E-mailadres <span className="text-primary">*</span>
           </label>
           <input
-            {...register("email", {
-              required: "Verplicht veld",
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: "Ongeldig e-mailadres",
-              },
-            })}
+            {...register("email", { required: "Verplicht veld" })}
             type="email"
-            className={`zp-input cursor-target ${errors.email ? "error" : ""}`}
+            className={`zp-input ${errors.email ? "error" : ""}`}
             placeholder="naam@instelling.nl"
           />
-          {errors.email && (
-            <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
-          )}
         </div>
-
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">
             Telefoonnummer <span className="text-primary">*</span>
@@ -288,129 +178,23 @@ function StaffingForm() {
           <input
             {...register("telefoon", { required: "Verplicht veld" })}
             type="tel"
-            className={`zp-input cursor-target ${errors.telefoon ? "error" : ""}`}
-            placeholder="+31 6 12345678"
+            className={`zp-input ${errors.telefoon ? "error" : ""}`}
+            placeholder="Uw telefoonnummer"
           />
-          {errors.telefoon && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.telefoon.message}
-            </p>
-          )}
         </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">
-            Gewenste specialisatie <span className="text-primary">*</span>
-          </label>
-          <select
-            {...register("specialisatie", { required: "Verplicht veld" })}
-            className={`zp-input cursor-target ${errors.specialisatie ? "error" : ""}`}
-          >
-            <option value="">Selecteer specialisatie</option>
-            {SPECIALISATIES.map((o) => (
-              <option key={o}>{o}</option>
-            ))}
-          </select>
-          {errors.specialisatie && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.specialisatie.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">
-            Aantal medewerkers <span className="text-primary">*</span>
-          </label>
-          <input
-            {...register("aantal", {
-              required: "Verplicht veld",
-              min: { value: 1, message: "Minimaal 1" },
-            })}
-            type="number"
-            min="1"
-            className={`zp-input cursor-target ${errors.aantal ? "error" : ""}`}
-            placeholder="1"
-          />
-          {errors.aantal && (
-            <p className="text-sm text-red-500 mt-1">{errors.aantal.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">
-            Gewenste startdatum <span className="text-primary">*</span>
-          </label>
-          <input
-            {...register("startdatum", { required: "Verplicht veld" })}
-            type="date"
-            className={`zp-input cursor-target ${errors.startdatum ? "error" : ""}`}
-          />
-          {errors.startdatum && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.startdatum.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">
-            Tijdvak <span className="text-primary">*</span>
-          </label>
-          <select
-            {...register("tijdvak", { required: "Verplicht veld" })}
-            className={`zp-input cursor-target ${errors.tijdvak ? "error" : ""}`}
-          >
-            <option value="">Selecteer tijdvak</option>
-            {TIJDVAKKEN.map((o) => (
-              <option key={o}>{o}</option>
-            ))}
-          </select>
-          {errors.tijdvak && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.tijdvak.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">
-            Urgentieniveau <span className="text-primary">*</span>
-          </label>
-          <select
-            {...register("urgentie", { required: "Verplicht veld" })}
-            className={`zp-input cursor-target ${errors.urgentie ? "error" : ""}`}
-          >
-            <option value="">Selecteer urgentie</option>
-            {URGENTIE.map((o) => (
-              <option key={o}>{o}</option>
-            ))}
-          </select>
-          {errors.urgentie && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.urgentie.message}
-            </p>
-          )}
-        </div>
-
         <div className="md:col-span-2">
           <label className="block text-sm font-semibold text-foreground mb-2">
-            Aanvullende informatie <span className="text-primary">*</span>
+            Vraag of toelichting <span className="text-primary">*</span>
           </label>
           <textarea
-            {...register("informatie", { required: "Verplicht veld" })}
-            className={`zp-input cursor-target ${errors.informatie ? "error" : ""}`}
-            placeholder="Bijzondere vereisten, specifieke tasks, of andere relevante informatie..."
+            {...register("bericht", { required: "Verplicht veld" })}
+            className={`zp-input ${errors.bericht ? "error" : ""}`}
+            placeholder="Laat ons weten hoe we u kunnen helpen..."
+            rows={4}
           />
-          {errors.informatie && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.informatie.message}
-            </p>
-          )}
         </div>
       </div>
 
-      {/* Spam protection */}
       <div className="mt-6 flex justify-end">
         <Turnstile
           siteKey={(import.meta as any).env.VITE_TURNSTILE_SITE_KEY}
@@ -419,26 +203,16 @@ function StaffingForm() {
         />
       </div>
 
-      <div className="mt-8 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      <div className="mt-8 flex flex-col sm:flex-row gap-4 items-center justify-between">
         <p className="text-xs text-muted-foreground max-w-sm">
-          Door dit formulier in te dienen gaat u akkoord met onze
-          privacyverklaring. Uw gegevens worden niet gedeeld met derden.
+          We reageren doorgaans binnen één werkdag op uw verzoek.
         </p>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="cursor-target flex items-center gap-2 bg-primary text-primary-foreground px-10 py-4 rounded-full font-semibold hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap shrink-0"
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-10 py-4 rounded-full font-semibold hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap shrink-0"
         >
-          {isSubmitting ? (
-            <>
-              <div className="w-5 h-5 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground animate-spin" />{" "}
-              Verzenden...
-            </>
-          ) : (
-            <>
-              Aanvraag indienen <ArrowRight className="w-5 h-5" />
-            </>
-          )}
+          Verzoek indienen <ArrowRight className="w-4.5 h-4.5" />
         </button>
       </div>
     </form>
@@ -468,14 +242,14 @@ export default function VoorInstellingen() {
               style={{ fontSize: "clamp(2.8rem,6vw,5rem)" }}
             >
               <BlurText
-                text="Personeel aanvragen"
+                text="Kwalitatief zorgpersoneel"
                 delay={150}
                 animateBy="words"
                 direction="top"
                 className="mr-[0.3em]"
               />
               <BlurText
-                text="binnen minuten."
+                text="wanneer u het nodig heeft."
                 delay={150}
                 animateBy="words"
                 direction="top"
@@ -483,21 +257,20 @@ export default function VoorInstellingen() {
               />
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed mb-10">
-              Vul het formulier in en ons team verwerkt uw aanvraag direct.
-              Gemiddelde responstijd: 15 minuten.
+              Wij leveren gescreende en gekwalificeerde zorgprofessionals voor ad-hoc diensten, tijdelijke projecten en langdurige contracten.
             </p>
             <div className="flex flex-wrap gap-8">
               {[
                 { icon: Shield, t: "DUO geverifieerde professionals" },
-                { icon: Clock, t: "~15 min responstijd" },
-                { icon: Users, t: "500+ tevreden instellingen" },
+                { icon: Clock, t: "Snelle bemiddeling" },
+                { icon: Users, t: "500+ aangesloten instellingen" },
               ].map(({ icon: Ic, t }) => (
                 <div
                   key={t}
                   className="flex items-center gap-2 text-muted-foreground"
                 >
                   <Ic className="w-5 h-5 text-primary" />
-                  <span className="text-sm">{t}</span>
+                  <span className="text-sm font-semibold">{t}</span>
                 </div>
               ))}
             </div>
@@ -505,20 +278,109 @@ export default function VoorInstellingen() {
         </div>
       </section>
 
-      {/* Form section */}
+      {/* General Information Section */}
       <section className="py-24 bg-background">
-        <div className="max-w-4xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <StaffingForm />
-          </motion.div>
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="grid lg:grid-cols-2 gap-16 items-center mb-24">
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className="font-display text-3xl lg:text-4xl font-black text-foreground mb-6">
+                Onze kwaliteitsgarantie &amp; screening
+              </h2>
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                Kwaliteit en veiligheid in de zorg staan bij ons voorop. Elke zorgprofessional die via ons platform aan de slag gaat, doorloopt een strenge toelatingsprocedure:
+              </p>
+              <div className="space-y-4">
+                {[
+                  {
+                    icon: Award,
+                    title: "Diploma & BIG-registratie",
+                    desc: "Handmatige en automatische verificatie van diploma's via het DUO-register en geldige BIG-registraties.",
+                  },
+                  {
+                    icon: BookOpen,
+                    title: "VOG & Referenties",
+                    desc: "Verplichte actuele Verklaring Omtrent het Gedrag (VOG) en positieve referentiechecks bij eerdere werkgevers.",
+                  },
+                  {
+                    icon: Calendar,
+                    title: "Continue Kwaliteitsmonitoring",
+                    desc: "Evaluatie na elke gewerkte dienst om de hoge cliënttevredenheid en professionele standaarden te borgen.",
+                  },
+                ].map(({ icon: Ic, title, desc }) => (
+                  <div key={title} className="flex gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                      <Ic className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{title}</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="bg-secondary rounded-3xl p-8 lg:p-12 border border-border"
+            >
+              <h3 className="font-display text-2xl font-bold text-foreground mb-4">
+                Onze Werkgebieden
+              </h3>
+              <p className="text-muted-foreground text-sm mb-6">
+                Wij voorzien zorginstellingen van gekwalificeerd personeel in diverse specialismen:
+              </p>
+              <ul className="space-y-3.5">
+                {[
+                  "Ouderenzorg (VVT) — Verzorgenden IG, Verpleegkundigen en helpenden.",
+                  "Geestelijke Gezondheidszorg (GGZ) — Begeleiders en gespecialiseerde verpleging.",
+                  "Gehandicaptenzorg (GZ) — Begeleiders met ervaring in intensieve begeleidingsvragen.",
+                  "Jeugdzorg — Gekwalificeerde jeugdzorgwerkers en pedagogisch medewerkers.",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-3">
+                    <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+                    <span className="text-foreground/80 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
+
+          <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-16 items-start">
+            <div>
+              <h2 className="font-display text-3xl font-black text-foreground mb-6">
+                Benieuwd naar de mogelijkheden?
+              </h2>
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                Wilt u meer informatie over tarieven, contractvormen of zoekt u een structurele partner voor uw flexpool? Vul het formulier in voor een vrijblijvend kennismakingsgesprek of informatiepakket.
+              </p>
+              <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
+                <p className="font-semibold text-primary text-sm uppercase tracking-wider mb-2">Direct hulp nodig?</p>
+                <p className="text-sm text-muted-foreground mb-4">Heeft u een acuut tekort voor vandaag of morgen? Maak dan gebruik van onze spoeddienst.</p>
+                <Link
+                  to="/spoeddienst-aanvraag"
+                  className="inline-flex items-center gap-2 text-primary font-bold hover:underline text-sm"
+                >
+                  Direct spoedaanvraag indienen <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+            <div>
+              <AppointmentForm />
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Trust section */}
+      {/* Trust statistics */}
       <section className="py-20 bg-secondary border-t border-border">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="grid md:grid-cols-3 gap-8 text-center">
@@ -526,17 +388,17 @@ export default function VoorInstellingen() {
               {
                 n: "500+",
                 label: "Tevreden instellingen",
-                sub: "Vertrouwen ons dagelijks",
+                sub: "Dagelijks partners in zorgcontinuïteit",
               },
               {
                 n: "15 min",
                 label: "Gemiddelde responstijd",
-                sub: "Van aanvraag tot bevestiging",
+                sub: "Voor onze spoedhulp aanvragen",
               },
               {
                 n: "98%",
-                label: "Tevredenheidsscore",
-                sub: "Gebaseerd op klantreviews",
+                label: "Klanttevredenheid",
+                sub: "Gebaseerd op feedback na voltooide diensten",
               },
             ].map(({ n, label, sub }) => (
               <div key={label} className="p-6">
@@ -567,11 +429,10 @@ export default function VoorInstellingen() {
             </a>
           </div>
           <Link
-            to="/beschikbaar-vandaag"
+            to="/spoeddienst-aanvraag"
             className="flex items-center gap-2 border border-primary-foreground/30 text-primary-foreground px-6 py-2.5 rounded-full text-sm hover:bg-primary-foreground/10 transition-all"
           >
-            Of bekijk wie er vandaag beschikbaar is{" "}
-            <ArrowRight className="w-4 h-4" />
+            Direct Spoedaanvraag Indienen <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </section>
