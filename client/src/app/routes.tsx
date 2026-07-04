@@ -5,11 +5,13 @@ import VoorInstellingen from "./pages/VoorInstellingen";
 import Registreren from "./pages/Registreren";
 import SpoeddienstAanvraag from "./pages/SpoeddienstAanvraag";
 import Portaal from "./pages/Portaal";
+import ErrorPage from "./pages/ErrorPage";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     Component: Root,
+    errorElement: <ErrorPage />,
     children: [
       { index: true, Component: Home },
       { path: "voor-instellingen", Component: VoorInstellingen },
@@ -19,3 +21,4 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
+

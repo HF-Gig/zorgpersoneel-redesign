@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Turnstile } from "@marsidev/react-turnstile";
+import SafeTurnstile from "../components/ui/SafeTurnstile";
 import { Link } from "react-router";
 import { motion } from "motion/react";
 import { useForm } from "react-hook-form";
@@ -404,7 +404,7 @@ function StaffingForm() {
 
       {/* Spam protection */}
       <div className="mt-6 flex justify-end">
-        <Turnstile
+        <SafeTurnstile
           siteKey={(import.meta as any).env.VITE_TURNSTILE_SITE_KEY}
           onSuccess={(token) => setTurnstileToken(token)}
           onExpire={() => setTurnstileToken(null)}
