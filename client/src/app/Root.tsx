@@ -24,7 +24,7 @@ function GlobalStyles() {
       ::-webkit-scrollbar { width: 0; }
 
       .gradient-text {
-        background: linear-gradient(130deg, #ab5c9d 0%, #2c7ab9 60%, #ab5c9d 100%);
+        background: linear-gradient(110deg, #1E3A5F 0%, #2A5A9F 50%, #C8960C 100%);
         background-size: 200% auto;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -32,10 +32,10 @@ function GlobalStyles() {
         animation: shimmer 4s linear infinite;
       }
       .glass {
-        background: rgba(250,246,239,0.85);
+        background: rgba(247,248,250,0.88);
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
-        border: 1px solid rgba(196,100,58,0.18);
+        border: 1px solid rgba(30,58,95,0.14);
       }
       .tilt { transition: transform 0.18s cubic-bezier(0.23,1,0.32,1), box-shadow 0.18s ease; }
 
@@ -136,7 +136,7 @@ function Nav() {
 
         <div
           ref={containerRef}
-          className="hidden lg:flex items-center gap-1 p-1 bg-muted/40 border border-[#aa5c9c] rounded-full backdrop-blur-md"
+          className="hidden lg:flex items-center gap-1 p-1 bg-muted/40 border border-primary/30 rounded-full backdrop-blur-md"
         >
           {NAV_LINKS.map(({ label, to }) => {
             const isActive = pathname === to;
@@ -151,7 +151,7 @@ function Nav() {
                 className={`relative px-4 py-2 text-sm font-semibold transition-colors duration-300 rounded-full whitespace-nowrap select-none ${
                   isHighlighted
                     ? "text-foreground"
-                    : "text-[#aa5c9c]/75 hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {isActive && (

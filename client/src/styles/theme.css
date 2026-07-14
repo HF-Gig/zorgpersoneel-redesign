@@ -2,46 +2,58 @@
 
 :root {
   --font-size: 16px;
-  --background: #F5F0E8;
-  --foreground: #1E1410;
-  --card: #FAF6EF;
-  --card-foreground: #1E1410;
-  --popover: #FAF6EF;
-  --popover-foreground: #1E1410;
-  --primary: #5B3F94;
+
+  /* ── Deep Navy + Gold Premium Palette ── */
+  --primary: #1E3A5F;            /* Deep Navy */
   --primary-foreground: #FFFFFF;
-  --accent: #2E5CAE;
-  --background: #FAFAFC;
-  --foreground: #15131F;
-  --secondary: #EEECF8;
+
+  --accent: #C8960C;             /* Rich Gold */
+  --accent-foreground: #1E3A5F;
+
+  --background: #F7F8FA;         /* Crisp off-white */
+  --foreground: #0D1B2A;         /* Ink Navy */
+
   --card: #FFFFFF;
-  --border: #E3DFF0;
-  --muted-foreground: #6C6680;  
-  --accent: #2c7ab9;
-  --accent-foreground: #1E1410;
-  --destructive: #d4183d;
-  --destructive-foreground: #ffffff;
-  --border: rgba(139, 100, 60, 0.15);
+  --card-foreground: #0D1B2A;
+
+  --popover: #FFFFFF;
+  --popover-foreground: #0D1B2A;
+
+  --secondary: #EEF2F8;          /* Light navy tint */
+  --secondary-foreground: #1E3A5F;
+
+  --muted: #EEF2F8;
+  --muted-foreground: #5A6A7E;   /* Steel blue-grey */
+
+  --border: #D6DDE8;
   --input: transparent;
-  --input-background: #EDE6D6;
-  --switch-background: #C4AD8E;
+  --input-background: #EEF2F8;
+  --switch-background: #A8B8CC;
+
+  --destructive: #D43F3F;
+  --destructive-foreground: #FFFFFF;
+
+  --ring: #C8960C;
+
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #ab5c9d;
+
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
+
   --radius: 1rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #030213;
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  --sidebar: #F7F8FA;
+  --sidebar-foreground: #0D1B2A;
+  --sidebar-primary: #1E3A5F;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EEF2F8;
+  --sidebar-accent-foreground: #1E3A5F;
+  --sidebar-border: #D6DDE8;
+  --sidebar-ring: #C8960C;
 }
 
 .dark {
@@ -266,38 +278,40 @@
   transform: translateX(-50%) scaleY(1.3) scaleX(0.8);
 }
 
-/* Primary Color (Purple/Magenta) Modifier */
+/* Primary Color (Deep Navy) Modifier */
 .button2-primary {
-  border-color: #ab5c9d;
+  border-color: #1E3A5F;
 }
 .button2-primary:after {
-  background-color: #ab5c9d;
+  background-color: #1E3A5F;
 }
 .button2-primary:hover {
-  border-color: #ab5c9d;
+  border-color: #1E3A5F;
+  color: #FFFFFF;
 }
 .button2-primary:hover:before,
 .button2-primary:hover:after {
-  background-color: #ab5c9d;
+  background-color: #1E3A5F;
 }
 
-/* Accent Color (Blue) Modifier */
+/* Accent Color (Gold) Modifier */
 .button2-accent {
-  border-color: #2c7ab9;
+  border-color: #C8960C;
 }
 .button2-accent:after {
-  background-color: #2c7ab9;
+  background-color: #C8960C;
 }
 .button2-accent:hover {
-  border-color: #2c7ab9;
+  border-color: #C8960C;
+  color: #1E3A5F;
 }
 .button2-accent:hover:before,
 .button2-accent:hover:after {
-  background-color: #2c7ab9;
+  background-color: #C8960C;
 }
 
 .gradient-text {
-  background: linear-gradient(100deg, #5B3F94, #2E5CAE);
+  background: linear-gradient(110deg, #1E3A5F 0%, #2A5A9F 40%, #C8960C 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
